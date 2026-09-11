@@ -12,7 +12,7 @@ const authStore = useAuthStore();
 // ---- 退出登录 ----
 function handleLogout() {
   authStore.logout();
-  router.push('/');
+  router.push('/login');
 }
 
 // ---- 根据当前时间生成问候语 ----
@@ -111,9 +111,7 @@ const activities = [
 <style scoped>
 /* 页面整体：内边距 + 浅灰背景 */
 .dashboard {
-  padding: 24px;
-  background: #f5f7fa;
-  min-height: 100vh;
+  padding: 8px;
 }
 
 /* 问候区：左右分两行排（左边文字，右边退出按钮） */
