@@ -12,5 +12,12 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    //代理，vite转发给vben
+    proxy:{
+      '/api':{
+        target:'https://mock-napi.vben.pro',
+        changeOrigin: true,
+      }
+    }
   },
 });

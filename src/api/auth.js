@@ -1,25 +1,32 @@
 import axios from 'axios';
 
-// axios 实例（以后接真实后端用它）
+// axios 实例
 export const service = axios.create({
-  baseURL: '/api',
+  baseURL: 'https://mock-napi.vben.pro/api', // 代理转发给 vben
   timeout: 10000,
 });
 
-// 登录接口（模拟）：演示账号 admin / 123456
+service.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// 登录接口
 export function loginApi(data) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (data.username === 'admin' && data.password === '123456') {
-        resolve({ token: 'fake-token-' + Date.now(), username: data.username });
-      } else {
-        reject(new Error('账号或密码错误'));
+  return service
+    .post('/auth/login',data)
+    .then((res) => {
+      if (res.data.code !== 0){
+        return Promise.reject(new Error(res.data.message || '登陆失败'));
       }
-    }, 500);
-  });
+      return res.data.data;
+    });
 }
 
-// 生成图形验证码（Canvas 动态绘制，演示用）
+// 生成图形验证码（Canvas 动态绘制）
 export function generateCaptcha() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let text = '';
