@@ -1,11 +1,22 @@
 <script setup>
 // 侧边栏菜单：从路由表自动生成菜单项
 // 好处：以后加页面只需在 router 里加一条，菜单自动出现（vben5 的路由驱动菜单思路）
+import { ref,onMounted } from 'vue';
+import { getMenuList } from '@/api/menu';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import router from '@/router';
 
 // 接收父组件传来的"是否折叠"
+const backendMenu =ref([]);
+onMounted(async () => {
+  try {
+    backendMenu.value = await getMenuList();
+    console.log('获取菜单成功', backendMenu.value);
+  } catch (e){
+    console.error('获取菜单失败', e);
+  }
+})
 const props = defineProps({
   collapse: { type: Boolean, default: false },
 });

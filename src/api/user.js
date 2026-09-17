@@ -1,4 +1,4 @@
-import {service} from '/auth';
+import {service} from './auth';
 export function getUserInfo(){
     return service.get('/user/info').then((res) => {
         if (res.data.code !== 0){

@@ -1,14 +1,23 @@
 <script setup>
-// 工作台页面：登录成功后的主页面
-// 当前版本包含：问候区 + 4个统计卡片 + 最近动态
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
-// Element Plus 图标（main.js 里已全局注册，这里直接可用）
 import { View, User, ShoppingCart, Money, ArrowUp, ArrowDown } from '@element-plus/icons-vue';
+import {ref,onMounted} from 'vue';
+import { getUserInfo } from '@/api/user';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const userInfo = ref(null);
 
+onMounted(async () => {
+  try {
+    const resData = await getUserInfo();
+    userInfo.value = resData;
+    console.log('获取用户信息成功:', resData);
+  } catch (error) {
+    console.error('获取用户信息失败:', error);
+  }
+});
 // ---- 退出登录 ----
 function handleLogout() {
   authStore.logout();
@@ -54,7 +63,7 @@ const activities = [
     <!-- ============ 问候区 ============ -->
     <div class="welcome-bar">
       <div>
-        <h1 class="welcome-title">{{ getGreeting() }}，{{ authStore.username }}</h1>
+        <h1 class="welcome-title">{{ getGreeting() }}，{{ userInfo?.realName || authStore.username }}</h1>
         <p class="welcome-date">{{ getToday() }}，欢迎回来，祝你今天工作顺利！</p>
       </div>
       <el-button type="danger" plain @click="handleLogout">退出登录</el-button>
