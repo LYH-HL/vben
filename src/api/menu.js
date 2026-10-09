@@ -6,4 +6,4 @@ export function getMenuList() {
         }
         return res.data.data;
     });
-}
+}  

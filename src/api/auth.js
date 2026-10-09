@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { ElMessage } from 'element-plus';
+let isHandling401 = false;
 
 // axios 实例
 export const service = axios.create({
@@ -13,6 +15,29 @@ service.interceptors.request.use((config) => {
   }
   return config;
 });
+   
+service.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      if (isHandling401) {
+        return Promise.reject(error);
+      }
+      isHandling401 = true;
+      console.error('登录已过期',error.response.data);
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      localStorage.removeItem('realName');
+      ElMessage.error('登录已过期，请重新登录');
+      setTimeout(() => {
+        window.location.reload();
+      },300);
+    }
+    return Promise.reject(error);
+  }
+)
 
 // 登录接口
 export function loginApi(data) {

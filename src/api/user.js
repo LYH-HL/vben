@@ -1,3 +1,4 @@
+import axios from 'axios';
 import {service} from './auth';
 export function getUserInfo(){
     return service.get('/user/info').then((res) => {
@@ -7,3 +8,15 @@ export function getUserInfo(){
         return res.data.data;
     })
 }
+const mockService = axios.create({
+    baseURL: 'http://localhost:3000', // 代理转发给 vben
+    timeout: 10000,
+});
+export function getUserList(params){
+    return mockService.get('/users',{params}).then((res) => {
+        return{
+            list: res.data,
+            total: Number(res.headers['x-total-count'] || 0)
+        };
+    });
+};
