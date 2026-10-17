@@ -4,7 +4,7 @@ import { reactive } from 'vue';
 import { ElMessage } from 'element-plus';
 
 const form = reactive({
-  siteName: 'Plus Admin',
+  siteName: '智慧校园管理系统',
   description: '开箱即用的大型中后台管理系统',
   email: 'admin@example.com',
   darkMode: false,

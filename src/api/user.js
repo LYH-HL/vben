@@ -9,7 +9,7 @@ export function getUserInfo(){
     })
 }
 const mockService = axios.create({
-    baseURL: 'http://localhost:3000', // 代理转发给 vben
+    baseURL: 'http://localhost:3001/api', // 本地后端
     timeout: 10000,
 });
 export function getUserList(params){

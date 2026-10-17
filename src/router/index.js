@@ -39,10 +39,29 @@ const routes = [
         meta: { title: '用户管理', icon: 'User' },
       },
       {
-        path: 'product',
-        name: 'product',
-        component: () => import('@/views/product/index.vue'),
-        meta: { title: '商品管理', icon: 'Goods' },
+        path: 'teacher',
+        component: () => import('@/views/teacher/index.vue'),
+        meta: { title: '教师管理' },
+      },
+      {
+        path: 'class',
+        component: () => import('@/views/class/index.vue'),
+        meta: { title: '班级管理' },
+      },
+      {
+        'path': 'course',
+        component: () => import('@/views/course/index.vue'),
+        meta: { title: '课程管理' },
+      },
+      {
+        path: 'score',
+        component: () => import('@/views/score/index.vue'),
+        meta: { title: '成绩管理' },
+      },
+      {
+        path: 'notice',
+        component: () => import('@/views/notice/index.vue'),
+        meta: { title: '通知公告' },
       },
       {
         path: 'settings',
@@ -80,7 +99,7 @@ router.beforeEach((to) => {
   if (!auth.isLoggedIn()) return { name: 'login' };
 
   // 设置浏览器标签页的标题（显示在浏览器顶部）
-  document.title = to.meta.title ? `${to.meta.title} - Plus Admin` : 'Plus Admin';
+  document.title = to.meta.title ? `${to.meta.title} - 智慧校园管理系统` : '智慧校园管理系统';
 
   return true; // 放行（return true 表示允许进入）
 });

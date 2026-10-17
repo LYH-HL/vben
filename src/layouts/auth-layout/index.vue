@@ -4,7 +4,7 @@
     <div class="auth-brand">
       <div class="brand-header">
         <div class="brand-logo">P</div>
-        <span class="brand-name">Plus Admin</span>
+        <span class="brand-name">智慧校园管理系统</span>
       </div>
 
       <!-- 把 src/assets/ 里你自己的图片路径填进来 -->

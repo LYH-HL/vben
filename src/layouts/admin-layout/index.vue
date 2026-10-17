@@ -33,8 +33,8 @@ function handleCommand(command) {
     <el-aside :width="isCollapse ? '64px' : '220px'" class="sidebar">
       <!-- 顶部 Logo 区 -->
       <div class="sidebar-logo">
-        <span v-show="!isCollapse" class="logo-text">Plus Admin</span>
-        <span v-show="isCollapse" class="logo-mini">P</span>
+        <span v-show="!isCollapse" class="logo-text">智慧校园</span>
+        <span v-show="isCollapse" class="logo-mini">校</span>
       </div>
       <!-- 菜单组件（把折叠状态传给它） -->
       <SideMenu :collapse="isCollapse" />
