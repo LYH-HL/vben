@@ -11,3 +11,13 @@ export function getNoticeList(params) {
     total: Number(res.headers['x-total-count'] || 0),
   }));
 }
+
+export function addNotice(data) {
+  return mockService.post('/notices', data);
+}
+export function updateNotice(id, data) {
+  return mockService.put('/notices/' + id, data);
+}
+export function deleteNotice(id) {
+  return mockService.delete('/notices/' + id);
+}

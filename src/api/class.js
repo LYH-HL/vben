@@ -11,3 +11,13 @@ export function getClassList(params) {
     total: Number(res.headers['x-total-count'] || 0),
   }));
 }
+
+export function addClass(data) {
+  return mockService.post('/classes', data);
+}
+export function updateClass(id, data) {
+  return mockService.put('/classes/' + id, data);
+}
+export function deleteClass(id) {
+  return mockService.delete('/classes/' + id);
+}

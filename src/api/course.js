@@ -11,3 +11,13 @@ export function getCourseList(params) {
     total: Number(res.headers['x-total-count'] || 0),
   }));
 }
+
+export function addCourse(data) {
+  return mockService.post('/courses', data);
+}
+export function updateCourse(id, data) {
+  return mockService.put('/courses/' + id, data);
+}
+export function deleteCourse(id) {
+  return mockService.delete('/courses/' + id);
+}

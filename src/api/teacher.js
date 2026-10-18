@@ -13,3 +13,13 @@ export function getTeacherList(params) {
     total: Number(res.headers['x-total-count'] || 0),
   }));
 }
+
+export function addTeacher(data) {
+  return mockService.post('/teachers', data);
+}
+export function updateTeacher(id, data) {
+  return mockService.put('/teachers/' + id, data);
+}
+export function deleteTeacher(id) {
+  return mockService.delete('/teachers/' + id);
+}

@@ -517,6 +517,118 @@ app.delete('/api/users/:id', (req, res) => {
   res.json({ message: '删除成功' });
 });
 
+// ===== 新增教师 =====
+app.post('/api/teachers', (req, res) => {
+  const { username, name, email, subject, title, status } = req.body;
+  if (!username || !name) {
+    return res.status(400).json({ message: '用户名和姓名必填' });
+  }
+  const info = db.prepare(`
+    INSERT INTO teachers (username, name, email, subject, title, status, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(username, name, email, subject, title, status ? 1 : 0, new Date().toISOString().slice(0, 10));
+  res.json({ id: info.lastInsertRowid, message: '新增成功' });
+});
+
+// ===== 编辑教师 =====
+app.put('/api/teachers/:id', (req, res) => {
+  const { username, name, email, subject, title, status } = req.body;
+  db.prepare(`
+    UPDATE teachers SET username=?, name=?, email=?, subject=?, title=?, status=? WHERE id=?
+  `).run(username, name, email, subject, title, status ? 1 : 0, req.params.id);
+  res.json({ message: '更新成功' });
+});
+
+// ===== 删除教师 =====
+app.delete('/api/teachers/:id', (req, res) => {
+  db.prepare('DELETE FROM teachers WHERE id=?').run(req.params.id);
+  res.json({ message: '删除成功' });
+});
+
+// ===== 新增班级 =====
+app.post('/api/classes', (req, res) => {
+  const { name, grade, headTeacher, studentCount, room } = req.body;
+  if (!name) {
+    return res.status(400).json({ message: '班级名必填' });
+  }
+  const info = db.prepare(`
+    INSERT INTO classes (name, grade, head_teacher, student_count, room, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(name, grade, headTeacher, studentCount || 0, room, new Date().toISOString().slice(0, 10));
+  res.json({ id: info.lastInsertRowid, message: '新增成功' });
+});
+
+// ===== 编辑班级 =====
+app.put('/api/classes/:id', (req, res) => {
+  const { name, grade, headTeacher, studentCount, room } = req.body;
+  db.prepare(`
+    UPDATE classes SET name=?, grade=?, head_teacher=?, student_count=?, room=? WHERE id=?
+  `).run(name, grade, headTeacher, studentCount || 0, room, req.params.id);
+  res.json({ message: '更新成功' });
+});
+
+// ===== 删除班级 =====
+app.delete('/api/classes/:id', (req, res) => {
+  db.prepare('DELETE FROM classes WHERE id=?').run(req.params.id);
+  res.json({ message: '删除成功' });
+});
+
+// ===== 新增课程 =====
+app.post('/api/courses', (req, res) => {
+  const { name, teacher, className, credit, hours, room } = req.body;
+  if (!name) {
+    return res.status(400).json({ message: '课程名必填' });
+  }
+  const info = db.prepare(`
+    INSERT INTO courses (name, teacher, class_name, credit, hours, room, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(name, teacher, className, credit, hours, room, new Date().toISOString().slice(0, 10));
+  res.json({ id: info.lastInsertRowid, message: '新增成功' });
+});
+
+// ===== 编辑课程 =====
+app.put('/api/courses/:id', (req, res) => {
+  const { name, teacher, className, credit, hours, room } = req.body;
+  db.prepare(`
+    UPDATE courses SET name=?, teacher=?, class_name=?, credit=?, hours=?, room=? WHERE id=?
+  `).run(name, teacher, className, credit, hours, room, req.params.id);
+  res.json({ message: '更新成功' });
+});
+
+// ===== 删除课程 =====
+app.delete('/api/courses/:id', (req, res) => {
+  db.prepare('DELETE FROM courses WHERE id=?').run(req.params.id);
+  res.json({ message: '删除成功' });
+});
+
+// ===== 新增通知 =====
+app.post('/api/notices', (req, res) => {
+  const { title, content, publisher, type, status } = req.body;
+  if (!title) {
+    return res.status(400).json({ message: '标题必填' });
+  }
+  const info = db.prepare(`
+    INSERT INTO notices (title, content, publisher, type, status, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(title, content, publisher, type, status ? 1 : 0, new Date().toISOString().slice(0, 10));
+  res.json({ id: info.lastInsertRowid, message: '新增成功' });
+});
+
+// ===== 编辑通知 =====
+app.put('/api/notices/:id', (req, res) => {
+  const { title, content, publisher, type, status } = req.body;
+  db.prepare(`
+    UPDATE notices SET title=?, content=?, publisher=?, type=?, status=? WHERE id=?
+  `).run(title, content, publisher, type, status ? 1 : 0, req.params.id);
+  res.json({ message: '更新成功' });
+});
+
+// ===== 删除通知 =====
+app.delete('/api/notices/:id', (req, res) => {
+  db.prepare('DELETE FROM notices WHERE id=?').run(req.params.id);
+  res.json({ message: '删除成功' });
+});
+
 
 app.listen(PORT, () => {
   console.log(`后端启动：http://localhost:${PORT}`);
