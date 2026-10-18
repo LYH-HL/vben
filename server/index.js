@@ -15,7 +15,7 @@ app.use(cors({
 app.use(express.json());
 
 // ===== 1. 连接 SQLite 数据库 =====
-// 数据库文件放在 server/data/school.db（文件夹不存在会自动建）
+// 数据库文件放在 server/data/school.db
 const dataDir = path.join(__dirname, 'data');
 fs.mkdirSync(dataDir, { recursive: true });
 const db = new Database(path.join(dataDir, 'school.db'));
@@ -100,7 +100,424 @@ app.get('/api/users', (req, res) => {
 });
 
 
-// ===== 5. 启动服务 =====
+
+// ===== 6. 教师表 =====
+db.exec(`
+  CREATE TABLE IF NOT EXISTS teachers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    name TEXT,
+    email TEXT,
+    subject TEXT,
+    title TEXT,
+    status INTEGER DEFAULT 1,
+    created_at TEXT
+  )
+`);
+
+// 表空就插入初始教师数据
+const teacherCount = db.prepare('SELECT COUNT(*) AS c FROM teachers').get();
+if (teacherCount.c === 0) {
+  const insert = db.prepare(`
+    INSERT INTO teachers (username, name, email, subject, title, status, created_at)
+    VALUES (@username, @name, @email, @subject, @title, @status, @created_at)
+  `);
+  const teachers = [
+    { username: 'wangli', name: '王莉', email: 'wangli@example.com', subject: '数学', title: '副教授', status: 1, created_at: '2026-09-01' },
+    { username: 'liqiang', name: '李强', email: 'liqiang@example.com', subject: '语文', title: '教授', status: 1, created_at: '2026-09-01' },
+    { username: 'zhangwei', name: '张伟', email: 'zhangwei@example.com', subject: '英语', title: '讲师', status: 1, created_at: '2026-09-02' },
+    { username: 'chenjing', name: '陈静', email: 'chenjing@example.com', subject: '物理', title: '副教授', status: 0, created_at: '2026-09-02' },
+    { username: 'yangliu', name: '杨柳', email: 'yangliu@example.com', subject: '化学', title: '教授', status: 1, created_at: '2026-09-03' },
+    { username: 'zhaomin', name: '赵敏', email: 'zhaomin@example.com', subject: '生物', title: '讲师', status: 1, created_at: '2026-09-03' },
+    { username: 'sunjie', name: '孙杰', email: 'sunjie@example.com', subject: '历史', title: '副教授', status: 1, created_at: '2026-09-04' },
+    { username: 'zhouyun', name: '周云', email: 'zhouyun@example.com', subject: '地理', title: '讲师', status: 0, created_at: '2026-09-04' },
+    { username: 'wutao', name: '吴涛', email: 'wutao@example.com', subject: '信息技术', title: '教授', status: 1, created_at: '2026-09-05' },
+    { username: 'zhengfang', name: '郑芳', email: 'zhengfang@example.com', subject: '音乐', title: '讲师', status: 1, created_at: '2026-09-05' },
+    { username: 'linfeng', name: '林峰', email: 'linfeng@example.com', subject: '体育', title: '副教授', status: 1, created_at: '2026-09-06' },
+    { username: 'xuhong', name: '徐红', email: 'xuhong@example.com', subject: '美术', title: '讲师', status: 1, created_at: '2026-09-06' },
+  ];
+  for (const t of teachers) insert.run(t);
+  console.log('已插入初始教师数据：12 条');
+}
+
+// 获取教师列表（分页 + 搜索）
+app.get('/api/teachers', (req, res) => {
+  const _page = Number(req.query._page) || 1;
+  const _limit = Number(req.query._limit) || 10;
+  const q = (req.query.q || '').trim();
+
+  let allTeachers;
+  if (q) {
+    allTeachers = db
+      .prepare(
+        'SELECT * FROM teachers WHERE username LIKE ? OR name LIKE ? OR subject LIKE ? ORDER BY id'
+      )
+      .all(`%${q}%`, `%${q}%`, `%${q}%`);
+  } else {
+    allTeachers = db.prepare('SELECT * FROM teachers ORDER BY id').all();
+  }
+
+  const total = allTeachers.length;
+  const start = (_page - 1) * _limit;
+  const pageTeachers = allTeachers.slice(start, start + _limit);
+
+  const list = pageTeachers.map((t) => ({
+    id: t.id,
+    username: t.username,
+    name: t.name,
+    email: t.email,
+    subject: t.subject,
+    title: t.title,
+    status: !!t.status,
+    createdAt: t.created_at,
+  }));
+
+  res.setHeader('x-total-count', total);
+  res.json(list);
+});
+
+// ===== 7. 班级表 =====
+db.exec(`
+  CREATE TABLE IF NOT EXISTS classes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE,
+    grade TEXT,
+    head_teacher TEXT,
+    student_count INTEGER DEFAULT 0,
+    room TEXT,
+    created_at TEXT
+  )
+`);
+
+const classCount = db.prepare('SELECT COUNT(*) AS c FROM classes').get();
+if (classCount.c === 0) {
+  const insert = db.prepare(`
+    INSERT INTO classes (name, grade, head_teacher, student_count, room, created_at)
+    VALUES (@name, @grade, @head_teacher, @student_count, @room, @created_at)
+  `);
+  const classes = [
+    { name: '高三(1)班', grade: '高三', head_teacher: '李强', student_count: 45, room: 'A301', created_at: '2026-09-01' },
+    { name: '高三(2)班', grade: '高三', head_teacher: '王莉', student_count: 48, room: 'A302', created_at: '2026-09-01' },
+    { name: '高三(3)班', grade: '高三', head_teacher: '陈静', student_count: 42, room: 'A303', created_at: '2026-09-01' },
+    { name: '高三(4)班', grade: '高三', head_teacher: '杨柳', student_count: 46, room: 'A304', created_at: '2026-09-01' },
+    { name: '高二(1)班', grade: '高二', head_teacher: '孙杰', student_count: 50, room: 'B201', created_at: '2026-09-02' },
+    { name: '高二(2)班', grade: '高二', head_teacher: '周云', student_count: 47, room: 'B202', created_at: '2026-09-02' },
+    { name: '高二(3)班', grade: '高二', head_teacher: '吴涛', student_count: 49, room: 'B203', created_at: '2026-09-02' },
+    { name: '高二(4)班', grade: '高二', head_teacher: '郑芳', student_count: 44, room: 'B204', created_at: '2026-09-02' },
+    { name: '高一(1)班', grade: '高一', head_teacher: '张伟', student_count: 52, room: 'C101', created_at: '2026-09-03' },
+    { name: '高一(2)班', grade: '高一', head_teacher: '赵敏', student_count: 51, room: 'C102', created_at: '2026-09-03' },
+    { name: '高一(3)班', grade: '高一', head_teacher: '林峰', student_count: 48, room: 'C103', created_at: '2026-09-03' },
+    { name: '高一(4)班', grade: '高一', head_teacher: '徐红', student_count: 46, room: 'C104', created_at: '2026-09-03' },
+  ];
+  for (const c of classes) insert.run(c);
+  console.log('已插入初始班级数据：12 条');
+}
+
+// 获取班级列表（分页 + 搜索）
+app.get('/api/classes', (req, res) => {
+  const _page = Number(req.query._page) || 1;
+  const _limit = Number(req.query._limit) || 10;
+  const q = (req.query.q || '').trim();
+
+  let allClasses;
+  if (q) {
+    allClasses = db
+      .prepare(
+        'SELECT * FROM classes WHERE name LIKE ? OR grade LIKE ? OR head_teacher LIKE ? ORDER BY id'
+      )
+      .all(`%${q}%`, `%${q}%`, `%${q}%`);
+  } else {
+    allClasses = db.prepare('SELECT * FROM classes ORDER BY id').all();
+  }
+
+  const total = allClasses.length;
+  const start = (_page - 1) * _limit;
+  const pageClasses = allClasses.slice(start, start + _limit);
+
+  const list = pageClasses.map((c) => ({
+    id: c.id,
+    name: c.name,
+    grade: c.grade,
+    headTeacher: c.head_teacher,
+    studentCount: c.student_count,
+    room: c.room,
+    createdAt: c.created_at,
+  }));
+
+  res.setHeader('x-total-count', total);
+  res.json(list);
+});
+
+// ===== 8. 课程表 =====
+db.exec(`
+  CREATE TABLE IF NOT EXISTS courses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    teacher TEXT,
+    class_name TEXT,
+    credit REAL,
+    hours INTEGER,
+    room TEXT,
+    created_at TEXT
+  )
+`);
+
+const courseCount = db.prepare('SELECT COUNT(*) AS c FROM courses').get();
+if (courseCount.c === 0) {
+  const insert = db.prepare(`
+    INSERT INTO courses (name, teacher, class_name, credit, hours, room, created_at)
+    VALUES (@name, @teacher, @class_name, @credit, @hours, @room, @created_at)
+  `);
+  const courses = [
+    { name: '高等数学', teacher: '王莉', class_name: '高三(1)班', credit: 4, hours: 64, room: 'A301', created_at: '2026-09-01' },
+    { name: '大学语文', teacher: '李强', class_name: '高三(2)班', credit: 3, hours: 48, room: 'A302', created_at: '2026-09-01' },
+    { name: '英语口语', teacher: '张伟', class_name: '高三(3)班', credit: 2, hours: 32, room: '语言室1', created_at: '2026-09-02' },
+    { name: '物理实验', teacher: '陈静', class_name: '高三(4)班', credit: 2, hours: 36, room: '物理实验室', created_at: '2026-09-02' },
+    { name: '有机化学', teacher: '杨柳', class_name: '高二(1)班', credit: 3, hours: 48, room: '化学实验室', created_at: '2026-09-03' },
+    { name: '生物导论', teacher: '赵敏', class_name: '高二(2)班', credit: 2, hours: 32, room: '生物实验室', created_at: '2026-09-03' },
+    { name: '中国近代史', teacher: '孙杰', class_name: '高二(3)班', credit: 2, hours: 36, room: 'B203', created_at: '2026-09-04' },
+    { name: '地理信息系统', teacher: '周云', class_name: '高二(4)班', credit: 2, hours: 32, room: 'B204', created_at: '2026-09-04' },
+    { name: 'Python程序设计', teacher: '吴涛', class_name: '高一(1)班', credit: 4, hours: 64, room: '机房1', created_at: '2026-09-05' },
+    { name: '基础音乐', teacher: '郑芳', class_name: '高一(2)班', credit: 1, hours: 18, room: '音乐教室', created_at: '2026-09-05' },
+    { name: '篮球训练', teacher: '林峰', class_name: '高一(3)班', credit: 1, hours: 36, room: '体育馆', created_at: '2026-09-06' },
+    { name: '素描基础', teacher: '徐红', class_name: '高一(4)班', credit: 2, hours: 36, room: '美术室', created_at: '2026-09-06' },
+  ];
+  for (const c of courses) insert.run(c);
+  console.log('已插入初始课程数据：12 条');
+}
+
+// 获取课程列表（分页 + 搜索）
+app.get('/api/courses', (req, res) => {
+  const _page = Number(req.query._page) || 1;
+  const _limit = Number(req.query._limit) || 10;
+  const q = (req.query.q || '').trim();
+
+  let allCourses;
+  if (q) {
+    allCourses = db
+      .prepare(
+        'SELECT * FROM courses WHERE name LIKE ? OR teacher LIKE ? OR class_name LIKE ? ORDER BY id'
+      )
+      .all(`%${q}%`, `%${q}%`, `%${q}%`);
+  } else {
+    allCourses = db.prepare('SELECT * FROM courses ORDER BY id').all();
+  }
+
+  const total = allCourses.length;
+  const start = (_page - 1) * _limit;
+  const pageCourses = allCourses.slice(start, start + _limit);
+
+  const list = pageCourses.map((c) => ({
+    id: c.id,
+    name: c.name,
+    teacher: c.teacher,
+    className: c.class_name,
+    credit: c.credit,
+    hours: c.hours,
+    room: c.room,
+    createdAt: c.created_at,
+  }));
+
+  res.setHeader('x-total-count', total);
+  res.json(list);
+});
+
+// ===== 9. 成绩表 =====
+db.exec(`
+  CREATE TABLE IF NOT EXISTS scores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_name TEXT,
+    course TEXT,
+    score REAL,
+    exam_type TEXT,
+    semester TEXT,
+    created_at TEXT
+  )
+`);
+
+// 表空就批量插入：12个学生 × 6门课 = 72 条
+const scoreCount = db.prepare('SELECT COUNT(*) AS c FROM scores').get();
+if (scoreCount.c === 0) {
+  const insert = db.prepare(`
+    INSERT INTO scores (student_name, course, score, exam_type, semester, created_at)
+    VALUES (@student_name, @course, @score, @exam_type, @semester, @created_at)
+  `);
+  const studentNames = ['王萌', '张雨欣', '李浩', '陈梦琪', '刘洋', '王浩宇', '赵磊', '孙佳怡', '周晓彤', '吴杰', '林佳', '许文博'];
+  const courseNames = ['数学', '语文', '英语', '物理', '化学', '生物'];
+  studentNames.forEach((sn, si) => {
+    courseNames.forEach((cn, ci) => {
+      // 用公式算固定分数（60~99），每次重启数据一样
+      const s = 60 + ((si * 11 + ci * 17) % 40);
+      insert.run({
+        student_name: sn,
+        course: cn,
+        score: s,
+        exam_type: (si + ci) % 2 === 0 ? '期末' : '期中',
+        semester: '2026秋',
+        created_at: '2026-10-01',
+      });
+    });
+  });
+  console.log('已插入初始成绩数据：72 条');
+}
+
+// 获取成绩列表（支持按学生筛选 student，分页 + 搜索）
+app.get('/api/scores', (req, res) => {
+  const _page = Number(req.query._page) || 1;
+  const _limit = Number(req.query._limit) || 100; // 默认100条，因为要看一个学生的全部6门课
+  const q = (req.query.q || '').trim();
+  const student = (req.query.student || '').trim();
+
+  let allScores;
+  if (student) {
+    // 按学生筛选
+    allScores = db
+      .prepare('SELECT * FROM scores WHERE student_name = ? ORDER BY course')
+      .all(student);
+  } else if (q) {
+    allScores = db
+      .prepare('SELECT * FROM scores WHERE student_name LIKE ? OR course LIKE ? ORDER BY id')
+      .all(`%${q}%`, `%${q}%`);
+  } else {
+    allScores = db.prepare('SELECT * FROM scores ORDER BY student_name, id').all();
+  }
+
+  const total = allScores.length;
+  const start = (_page - 1) * _limit;
+  const pageScores = allScores.slice(start, start + _limit);
+
+  const list = pageScores.map((s) => ({
+    id: s.id,
+    studentName: s.student_name,
+    course: s.course,
+    score: s.score,
+    examType: s.exam_type,
+    semester: s.semester,
+    createdAt: s.created_at,
+  }));
+
+  res.setHeader('x-total-count', total);
+  res.json(list);
+});
+
+
+// ===== 10. 通知公告表 =====
+db.exec(`
+  CREATE TABLE IF NOT EXISTS notices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT,
+    content TEXT,
+    publisher TEXT,
+    type TEXT,
+    status INTEGER DEFAULT 1,
+    created_at TEXT
+  )
+`);
+
+const noticeCount = db.prepare('SELECT COUNT(*) AS c FROM notices').get();
+if (noticeCount.c === 0) {
+  const insert = db.prepare(`
+    INSERT INTO notices (title, content, publisher, type, status, created_at)
+    VALUES (@title, @content, @publisher, @type, @status, @created_at)
+  `);
+  const notices = [
+    { title: '2026年秋季学期开学典礼通知', content: '定于9月1日举行开学典礼，请全体师生准时参加。', publisher: '王校长', type: '通知', status: 1, created_at: '2026-08-28' },
+    { title: '中秋节放假安排', content: '9月15日至17日放假，共3天。', publisher: '办公室', type: '通知', status: 1, created_at: '2026-09-10' },
+    { title: '关于开展秋季运动会的公告', content: '运动会定于10月20日举行，请各班积极报名。', publisher: '体育组', type: '公告', status: 1, created_at: '2026-09-15' },
+    { title: '期中考试安排', content: '期中考试时间为11月5日-8日，请做好复习。', publisher: '教务处', type: '通知', status: 1, created_at: '2026-09-20' },
+    { title: '图书馆新书上架', content: '本月新增图书500册，欢迎借阅。', publisher: '图书馆', type: '新闻', status: 1, created_at: '2026-09-22' },
+    { title: '国庆放假通知', content: '10月1日至7日放假调休，共7天。', publisher: '办公室', type: '通知', status: 1, created_at: '2026-09-25' },
+    { title: '关于校园网络升级的公告', content: '本周末网络升级，期间可能短暂断网。', publisher: '信息中心', type: '公告', status: 1, created_at: '2026-09-26' },
+    { title: '学生会招新启事', content: '学生会各部门开始招新，有意者请报名。', publisher: '团委', type: '新闻', status: 1, created_at: '2026-09-28' },
+    { title: '冬季作息时间调整', content: '10月15日起执行冬季作息时间。', publisher: '办公室', type: '通知', status: 0, created_at: '2026-10-01' },
+    { title: '食堂菜品更新公告', content: '学生食堂新增窗口，欢迎品尝。', publisher: '后勤处', type: '公告', status: 1, created_at: '2026-10-03' },
+    { title: '关于流感防控的通知', content: '近期流感高发，请注意个人卫生。', publisher: '医务室', type: '通知', status: 1, created_at: '2026-10-05' },
+    { title: '校园歌手大赛报名', content: '第十五届校园歌手大赛开始报名。', publisher: '团委', type: '新闻', status: 0, created_at: '2026-10-08' },
+  ];
+  for (const n of notices) insert.run(n);
+  console.log('已插入初始通知数据：12 条');
+}
+
+// 获取通知列表（分页 + 搜索）
+app.get('/api/notices', (req, res) => {
+  const _page = Number(req.query._page) || 1;
+  const _limit = Number(req.query._limit) || 10;
+  const q = (req.query.q || '').trim();
+
+  let allNotices;
+  if (q) {
+    allNotices = db
+      .prepare(
+        'SELECT * FROM notices WHERE title LIKE ? OR publisher LIKE ? OR type LIKE ? ORDER BY id DESC'
+      )
+      .all(`%${q}%`, `%${q}%`, `%${q}%`);
+  } else {
+    allNotices = db.prepare('SELECT * FROM notices ORDER BY id DESC').all();
+  }
+
+  const total = allNotices.length;
+  const start = (_page - 1) * _limit;
+  const pageNotices = allNotices.slice(start, start + _limit);
+
+  const list = pageNotices.map((n) => ({
+    id: n.id,
+    title: n.title,
+    content: n.content,
+    publisher: n.publisher,
+    type: n.type,
+    status: !!n.status,
+    createdAt: n.created_at,
+  }));
+
+  res.setHeader('x-total-count', total);
+  res.json(list);
+});
+
+// ===== 11. 工作台统计数据 =====
+app.get('/api/stats', (req, res) => {
+  const studentCount = db.prepare('SELECT COUNT(*) AS c FROM users').get().c;
+  const teacherCount = db.prepare('SELECT COUNT(*) AS c FROM teachers').get().c;
+  const classCount = db.prepare('SELECT COUNT(*) AS c FROM classes').get().c;
+  const courseCount = db.prepare('SELECT COUNT(*) AS c FROM courses').get().c;
+  const noticeCount = db.prepare('SELECT COUNT(*) AS c FROM notices WHERE status = 1').get().c;
+  res.json({
+    studentCount,
+    teacherCount,
+    classCount,
+    courseCount,
+    noticeCount,
+  });
+});
+
+// ===== 新增学生 =====
+app.post('/api/users', (req, res) => {
+  const { username, name, email, role, status } = req.body;
+  if (!username || !name) {
+    return res.status(400).json({ message: '用户名和姓名必填' });
+  }
+  const info = db.prepare(`
+    INSERT INTO users (username, name, email, role, status, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(username, name, email, role, status ? 1 : 0, new Date().toISOString().slice(0, 10));
+  res.json({ id: info.lastInsertRowid, message: '新增成功' });
+});
+
+// ===== 编辑学生 =====
+app.put('/api/users/:id', (req, res) => {
+  const { username, name, email, role, status } = req.body;
+  db.prepare(`
+    UPDATE users SET username=?, name=?, email=?, role=?, status=? WHERE id=?
+  `).run(username, name, email, role, status ? 1 : 0, req.params.id);
+  res.json({ message: '更新成功' });
+});
+
+// ===== 删除学生 =====
+app.delete('/api/users/:id', (req, res) => {
+  db.prepare('DELETE FROM users WHERE id=?').run(req.params.id);
+  res.json({ message: '删除成功' });
+});
+
+
 app.listen(PORT, () => {
   console.log(`后端启动：http://localhost:${PORT}`);
 });

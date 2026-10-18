@@ -1,198 +1,102 @@
-<script setup>
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/auth';
-import { View, User, ShoppingCart, Money, ArrowUp, ArrowDown } from '@element-plus/icons-vue';
-import {ref,onMounted} from 'vue';
-import { getUserInfo } from '@/api/user';
-
-const router = useRouter();
-const authStore = useAuthStore();
-const userInfo = ref(null);
-
-onMounted(async () => {
-  try {
-    const resData = await getUserInfo();
-    userInfo.value = resData;
-    console.log('获取用户信息成功:', resData);
-  } catch (error) {
-    console.error('获取用户信息失败:', error);
-  }
-});
-// ---- 退出登录 ----
-function handleLogout() {
-  authStore.logout();
-  router.push('/login');
-}
-
-// ---- 根据当前时间生成问候语 ----
-function getGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 6) return '夜深了';
-  if (hour < 12) return '早上好';
-  if (hour < 14) return '中午好';
-  if (hour < 18) return '下午好';
-  return '晚上好';
-}
-
-// ---- 今天的日期（显示在问候区） ----
-function getToday() {
-  const d = new Date();
-  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
-}
-
-// ---- 统计卡片数据（目前是写死的假数据，以后换成接口返回） ----
-const stats = [
-  { title: '今日访问量', value: '2,846', icon: View, trend: '+12.5%', up: true },
-  { title: '新增用户', value: '128', icon: User, trend: '+3.2%', up: true },
-  { title: '今日订单', value: '356', icon: ShoppingCart, trend: '-1.8%', up: false },
-  { title: '本月收入', value: '¥86,420', icon: Money, trend: '+8.6%', up: true },
-];
-
-// ---- 最近动态（假数据，以后接接口） ----
-const activities = [
-  { time: '10 分钟前', content: '用户「小明」完成了订单 #20240907001' },
-  { time: '1 小时前', content: '新注册用户 23 人，较昨日同期增长 12%' },
-  { time: '3 小时前', content: '系统完成每日数据备份，耗时 42 秒' },
-  { time: '昨天 18:30', content: '运营团队更新了首页轮播图配置' },
-  { time: '昨天 09:12', content: '「商品管理」模块发布 v1.2.0 版本' },
-];
-</script>
-
 <template>
   <div class="dashboard">
-    <!-- ============ 问候区 ============ -->
-    <div class="welcome-bar">
-      <div>
-        <h1 class="welcome-title">{{ getGreeting() }}，{{ userInfo?.realName || authStore.username }}</h1>
-        <p class="welcome-date">{{ getToday() }}，欢迎回来，祝你今天工作顺利！</p>
-      </div>
-      <el-button type="danger" plain @click="handleLogout">退出登录</el-button>
-    </div>
+    <!-- 欢迎语 -->
+    <el-card shadow="never" class="welcome-card">
+      <h2>欢迎使用智慧校园管理系统</h2>
+      <p>当前登录：{{ username }}</p>
+    </el-card>
 
-    <!-- ============ 统计卡片区 ============ -->
-    <!-- el-row 栅格布局：一行分 4 列（每列 24/4=6），间距 16px -->
-    <el-row :gutter="16" class="stats-row">
-      <!-- 遍历 stats 数组，自动生成 4 张卡片 -->
-      <el-col :span="6" v-for="item in stats" :key="item.title">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-content">
-            <!-- 左边：图标圆块 -->
-            <div class="stat-icon">
-              <el-icon :size="22"><component :is="item.icon" /></el-icon>
-            </div>
-            <!-- 右边：数值 + 标题 + 涨跌标签 -->
-            <div class="stat-info">
-              <div class="stat-value">{{ item.value }}</div>
-              <div class="stat-title">{{ item.title }}</div>
-              <!-- 涨跌：涨用红色箭头，跌用绿色（国内习惯红涨绿跌） -->
-              <el-tag :type="item.up ? 'danger' : 'success'" size="small" effect="light">
-                <el-icon :size="12">
-                  <component :is="item.up ? ArrowUp : ArrowDown" />
-                </el-icon>
-                {{ item.trend }}
-              </el-tag>
-            </div>
+    <!-- 统计卡片（可点击跳转） -->
+    <el-row :gutter="16">
+      <el-col :span="4" v-for="card in cards" :key="card.title">
+        <el-card shadow="hover" class="stat-card" @click="goTo(card.path)">
+          <div class="stat-icon" :style="{ background: card.color }">
+            <el-icon :size="28"><component :is="card.icon" /></el-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-num">{{ stats[card.key] ?? '-' }}</div>
+            <div class="stat-title">{{ card.title }}</div>
           </div>
         </el-card>
       </el-col>
     </el-row>
-
-    <!-- ============ 最近动态区 ============ -->
-    <el-card shadow="never" class="activity-card">
-      <template #header>
-        <span class="card-title">最近动态</span>
-      </template>
-      <!-- el-timeline：Element Plus 时间线组件，适合展示动态 -->
-      <el-timeline>
-        <el-timeline-item
-          v-for="(act, index) in activities"
-          :key="index"
-          :timestamp="act.time"
-          placement="top"
-        >
-          {{ act.content }}
-        </el-timeline-item>
-      </el-timeline>
-    </el-card>
   </div>
 </template>
 
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { ElMessage } from 'element-plus';
+import { getStats } from '@/api/dashboard';
+import { useAuthStore } from '@/stores/auth';
+
+const router = useRouter();
+const authStore = useAuthStore();
+const username = ref(authStore.username || '管理员');
+
+const stats = ref({});
+const cards = [
+  { key: 'studentCount', title: '学生总数', icon: 'User', color: '#409eff', path: '/user' },
+  { key: 'teacherCount', title: '教师总数', icon: 'Reading', color: '#67c23a', path: '/teacher' },
+  { key: 'classCount', title: '班级总数', icon: 'School', color: '#e6a23c', path: '/class' },
+  { key: 'courseCount', title: '课程总数', icon: 'Notebook', color: '#f56c6c', path: '/course' },
+  { key: 'noticeCount', title: '已发布通知', icon: 'Bell', color: '#909399', path: '/notice' },
+];
+
+// 点击卡片跳转到对应管理页
+function goTo(path) {
+  router.push(path);
+}
+
+onMounted(async () => {
+  try {
+    stats.value = await getStats();
+  } catch (error) {
+    ElMessage.error('加载统计数据失败：' + error.message);
+  }
+});
+</script>
+
 <style scoped>
-/* 页面整体：内边距 + 浅灰背景 */
-.dashboard {
-  padding: 8px;
+.welcome-card {
+  margin-bottom: 16px;
 }
-
-/* 问候区：左右分两行排（左边文字，右边退出按钮） */
-.welcome-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  background: #fff;
-  border-radius: 8px;
-  padding: 20px 24px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+.welcome-card h2 {
+  margin: 0 0 8px;
 }
-
-.welcome-title {
-  margin: 0 0 6px;
-  font-size: 22px;
-  color: #1f2329;
-}
-
-.welcome-date {
+.welcome-card p {
   margin: 0;
-  font-size: 14px;
-  color: #8f959e;
+  color: #666;
 }
-
-/* 统计卡片行 */
-.stats-row {
-  margin-bottom: 24px;
+.stat-card {
+  cursor: pointer; /* 鼠标变成手型，提示可点击 */
+  transition: transform 0.2s;
 }
-
-/* 卡片内部：图标在左，数据在右 */
-.stat-content {
+.stat-card:hover {
+  transform: translateY(-4px); /* 悬停时上浮一点 */
+}
+.stat-card :deep(.el-card__body) {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
-
 .stat-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #409eff;
-  background: #ecf5ff;
-  flex-shrink: 0;
+  color: #fff;
 }
-
-.stat-value {
+.stat-num {
   font-size: 24px;
   font-weight: 700;
-  color: #1f2329;
-  line-height: 1.2;
+  color: #303133;
 }
-
 .stat-title {
   font-size: 13px;
-  color: #8f959e;
-  margin: 2px 0 6px;
-}
-
-/* 最近动态卡片 */
-.activity-card {
-  border: none;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-.card-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2329;
+  color: #909399;
+  margin-top: 4px;
 }
 </style>

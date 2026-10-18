@@ -20,3 +20,18 @@ export function getUserList(params){
         };
     });
 };
+
+// 新增学生
+export function addUser(data) {
+  return mockService.post('/users', data);
+}
+
+// 编辑学生
+export function updateUser(id, data) {
+  return mockService.put('/users/' + id, data);
+}
+
+// 删除学生
+export function deleteUser(id) {
+  return mockService.delete('/users/' + id);
+}
