@@ -1,13 +1,15 @@
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
+
 let isHandling401 = false;
 
-// axios 实例
+// axios 实例（指向自己的后端）
 export const service = axios.create({
-  baseURL: 'https://mock-napi.vben.pro/api', // 代理转发给 vben
+  baseURL: 'http://localhost:3001/api',
   timeout: 10000,
 });
 
+// 请求拦截器：自动带 token
 service.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -15,75 +17,30 @@ service.interceptors.request.use((config) => {
   }
   return config;
 });
-   
+
+// 响应拦截器：401 处理
 service.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      if (isHandling401) {
-        return Promise.reject(error);
-      }
+      if (isHandling401) return Promise.reject(error);
       isHandling401 = true;
-      console.error('登录已过期',error.response.data);
       localStorage.removeItem('token');
       localStorage.removeItem('username');
-      localStorage.removeItem('realName');
+      localStorage.removeItem('realname');
       ElMessage.error('登录已过期，请重新登录');
-      setTimeout(() => {
-        window.location.reload();
-      },300);
+      setTimeout(() => window.location.reload(), 300);
     }
     return Promise.reject(error);
   }
-)
+);
 
-// 登录接口
+// 登录接口（指向自己的后端）
 export function loginApi(data) {
-  return service
-    .post('/auth/login',data)
-    .then((res) => {
-      if (res.data.code !== 0){
-        return Promise.reject(new Error(res.data.message || '登陆失败'));
-      }
-      return res.data.data;
-    });
-}
-
-// 生成图形验证码（Canvas 动态绘制）
-export function generateCaptcha() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let text = '';
-  for (let i = 0; i < 4; i++) {
-    text += chars[Math.floor(Math.random() * chars.length)];
-  }
-
-  const canvas = document.createElement('canvas');
-  canvas.width = 120;
-  canvas.height = 44;
-  const ctx = canvas.getContext('2d');
-
-  ctx.fillStyle = '#f0f2f5';
-  ctx.fillRect(0, 0, 120, 44);
-
-  for (let i = 0; i < 4; i++) {
-    ctx.beginPath();
-    ctx.moveTo(Math.random() * 120, Math.random() * 44);
-    ctx.lineTo(Math.random() * 120, Math.random() * 44);
-    ctx.strokeStyle = `rgba(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255},0.5)`;
-    ctx.stroke();
-  }
-
-  for (let i = 0; i < text.length; i++) {
-    ctx.save();
-    ctx.translate(15 + i * 26, 28);
-    ctx.rotate((Math.random() - 0.5) * 0.6);
-    ctx.font = 'bold 22px Arial';
-    ctx.fillStyle = `hsl(${Math.random() * 360},70%,40%)`;
-    ctx.fillText(text[i], 0, 0);
-    ctx.restore();
-  }
-
-  return { dataUrl: canvas.toDataURL('image/png'), text };
+  return service.post('/login', data).then((res) => {
+    if (res.data.code !== 0) {
+      return Promise.reject(new Error(res.data.message || '登录失败'));
+    }
+    return res.data.data;
+  });
 }
