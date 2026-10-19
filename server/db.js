@@ -9,11 +9,12 @@ const db = new Database(path.join(dataDir, 'school.db'));
 
 // ===== 建表 =====
 db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
+    CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE,
     name TEXT,
     email TEXT,
+    password TEXT DEFAULT '123456',
     role TEXT,
     status INTEGER DEFAULT 1,
     created_at TEXT
@@ -77,8 +78,8 @@ function seed(tableName, countSql, insertSql, data) {
 }
 
 seed('users', 'SELECT COUNT(*) AS c FROM users',
-  `INSERT INTO users (username, name, email, role, status, created_at)
-   VALUES (@username, @name, @email, @role, @status, @created_at)`,
+  `INSERT INTO users (username, name, email, password, role, status, created_at)
+   VALUES (@username, @name, @email, @password, @role, @status, @created_at)`,
   [
     { username: 'wangmeng', name: '王萌', email: 'wangmeng@example.com', role: '管理员', status: 1, created_at: '2026-09-01' },
     { username: 'zhangyuxin', name: '张雨欣', email: 'zhangyuxin@example.com', role: '学生', status: 1, created_at: '2026-09-02' },
@@ -97,19 +98,19 @@ seed('users', 'SELECT COUNT(*) AS c FROM users',
 seed('teachers', 'SELECT COUNT(*) AS c FROM teachers',
   `INSERT INTO teachers (username, name, email, subject, title, status, created_at)
    VALUES (@username, @name, @email, @subject, @title, @status, @created_at)`,
-  [
-    { username: 'wangli', name: '王莉', email: 'wangli@example.com', subject: '数学', title: '副教授', status: 1, created_at: '2026-09-01' },
-    { username: 'liqiang', name: '李强', email: 'liqiang@example.com', subject: '语文', title: '教授', status: 1, created_at: '2026-09-01' },
-    { username: 'zhangwei', name: '张伟', email: 'zhangwei@example.com', subject: '英语', title: '讲师', status: 1, created_at: '2026-09-02' },
-    { username: 'chenjing', name: '陈静', email: 'chenjing@example.com', subject: '物理', title: '副教授', status: 0, created_at: '2026-09-02' },
-    { username: 'yangliu', name: '杨柳', email: 'yangliu@example.com', subject: '化学', title: '教授', status: 1, created_at: '2026-09-03' },
-    { username: 'zhaomin', name: '赵敏', email: 'zhaomin@example.com', subject: '生物', title: '讲师', status: 1, created_at: '2026-09-03' },
-    { username: 'sunjie', name: '孙杰', email: 'sunjie@example.com', subject: '历史', title: '副教授', status: 1, created_at: '2026-09-04' },
-    { username: 'zhouyun', name: '周云', email: 'zhouyun@example.com', subject: '地理', title: '讲师', status: 0, created_at: '2026-09-04' },
-    { username: 'wutao', name: '吴涛', email: 'wutao@example.com', subject: '信息技术', title: '教授', status: 1, created_at: '2026-09-05' },
-    { username: 'zhengfang', name: '郑芳', email: 'zhengfang@example.com', subject: '音乐', title: '讲师', status: 1, created_at: '2026-09-05' },
-    { username: 'linfeng', name: '林峰', email: 'linfeng@example.com', subject: '体育', title: '副教授', status: 1, created_at: '2026-09-06' },
-    { username: 'xuhong', name: '徐红', email: 'xuhong@example.com', subject: '美术', title: '讲师', status: 1, created_at: '2026-09-06' },
+    [
+    { username: 'wangmeng', name: '王萌', email: 'wangmeng@example.com', password: 'admin123', role: '管理员', status: 1, created_at: '2026-09-01' },
+    { username: 'zhangyuxin', name: '张雨欣', email: 'zhangyuxin@example.com', password: '123456', role: '学生', status: 1, created_at: '2026-09-02' },
+    { username: 'lihao', name: '李浩', email: 'lihao@example.com', password: '123456', role: '学生', status: 0, created_at: '2026-09-03' },
+    { username: 'chenmengqi', name: '陈梦琪', email: 'chenmengqi@example.com', password: '123456', role: '学生', status: 1, created_at: '2026-09-04' },
+    { username: 'liuyang', name: '刘洋', email: 'liuyang@example.com', password: '123456', role: '学生', status: 1, created_at: '2026-09-05' },
+    { username: 'wanghaoyu', name: '王浩宇', email: 'wanghaoyu@example.com', password: '123456', role: '学生', status: 0, created_at: '2026-09-06' },
+    { username: 'zhaolei', name: '赵磊', email: 'zhaolei@example.com', password: '123456', role: '学生', status: 1, created_at: '2026-09-07' },
+    { username: 'sunjiayi', name: '孙佳怡', email: 'sunjiayi@example.com', password: '123456', role: '学生', status: 1, created_at: '2026-09-08' },
+    { username: 'zhouxiaotong', name: '周晓彤', email: 'zhouxiaotong@example.com', password: '123456', role: '学生', status: 0, created_at: '2026-09-09' },
+    { username: 'wujie', name: '吴杰', email: 'wujie@example.com', password: '123456', role: '学生', status: 1, created_at: '2026-09-10' },
+    { username: 'linjia', name: '林佳', email: 'linjia@example.com', password: '123456', role: '学生', status: 1, created_at: '2026-09-11' },
+    { username: 'xuwenbo', name: '许文博', email: 'xuwenbo@example.com', password: '123456', role: '学生', status: 1, created_at: '2026-09-12' },
   ]);
 
 seed('classes', 'SELECT COUNT(*) AS c FROM classes',

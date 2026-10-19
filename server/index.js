@@ -20,28 +20,10 @@ app.use('/api/courses', require('./routes/courses'));
 app.use('/api/scores', require('./routes/scores'));
 app.use('/api/notices', require('./routes/notices'));
 app.use('/api/stats', require('./routes/stats'));
+app.use('/api', require('./routes/auth'));
+
 
 app.listen(PORT, () => {
   console.log(`后端启动：http://localhost:${PORT}`);
 });
 
-// ===== 登录 =====
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  if (username === 'admin' && password === '123456') {
-    res.json({
-      code: 0,
-      message: '登录成功',
-      data: {
-        accessToken: 'token-' + Date.now(),
-        username: 'admin',
-        realname: '管理员',
-      },
-    });
-  } else {
-    res.status(401).json({
-      code: 1,
-      message: '用户名或密码错误',
-    });
-  }
-});
