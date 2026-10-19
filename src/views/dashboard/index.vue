@@ -1,21 +1,22 @@
 <template>
   <div class="dashboard">
-    <!-- 欢迎语 -->
     <el-card shadow="never" class="welcome-card">
       <h2>欢迎使用智慧校园管理系统</h2>
       <p>当前登录：{{ username }}</p>
     </el-card>
 
-    <!-- 统计卡片（可点击跳转） -->
-    <el-row :gutter="16">
-      <el-col :span="4" v-for="card in cards" :key="card.title">
+    <!-- 5 张卡片平分宽度，高度统一 -->
+    <el-row :gutter="16" class="stat-row">
+      <el-col :span="24 / 5" v-for="card in cards" :key="card.title" class="stat-col">
         <el-card shadow="hover" class="stat-card" @click="goTo(card.path)">
-          <div class="stat-icon" :style="{ background: card.color }">
-            <el-icon :size="28"><component :is="card.icon" /></el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-num">{{ stats[card.key] ?? '-' }}</div>
-            <div class="stat-title">{{ card.title }}</div>
+          <div class="stat-body">
+            <div class="stat-icon" :style="{ background: card.color }">
+              <el-icon :size="28"><component :is="card.icon" /></el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-num">{{ stats[card.key] ?? '-' }}</div>
+              <div class="stat-title">{{ card.title }}</div>
+            </div>
           </div>
         </el-card>
       </el-col>
@@ -33,8 +34,8 @@ import { useAuthStore } from '@/stores/auth';
 const router = useRouter();
 const authStore = useAuthStore();
 const username = ref(authStore.username || '管理员');
-
 const stats = ref({});
+
 const cards = [
   { key: 'studentCount', title: '学生总数', icon: 'User', color: '#409eff', path: '/user' },
   { key: 'teacherCount', title: '教师总数', icon: 'Reading', color: '#67c23a', path: '/teacher' },
@@ -43,7 +44,6 @@ const cards = [
   { key: 'noticeCount', title: '已发布通知', icon: 'Bell', color: '#909399', path: '/notice' },
 ];
 
-// 点击卡片跳转到对应管理页
 function goTo(path) {
   router.push(path);
 }
@@ -68,17 +68,20 @@ onMounted(async () => {
   margin: 0;
   color: #666;
 }
+/* 卡片统一高度 */
 .stat-card {
-  cursor: pointer; /* 鼠标变成手型，提示可点击 */
+  cursor: pointer;
   transition: transform 0.2s;
+  height: 100px;
 }
 .stat-card:hover {
-  transform: translateY(-4px); /* 悬停时上浮一点 */
+  transform: translateY(-4px);
 }
-.stat-card :deep(.el-card__body) {
+.stat-body {
   display: flex;
   align-items: center;
   gap: 12px;
+  height: 100%;
 }
 .stat-icon {
   width: 56px;
@@ -88,6 +91,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   color: #fff;
+  flex-shrink: 0;
 }
 .stat-num {
   font-size: 24px;
