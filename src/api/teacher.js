@@ -1,25 +1,25 @@
-import axios from 'axios';
-
-// 指向自己的后端
-const mockService = axios.create({
-  baseURL: 'http://localhost:3001/api',
-  timeout: 10000,
-});
+// 教师接口
+import { service } from './auth';
 
 // 获取教师列表（分页 + 搜索）
 export function getTeacherList(params) {
-  return mockService.get('/teachers', { params }).then((res) => ({
+  return service.get('/teachers', { params }).then((res) => ({
     list: res.data,
     total: Number(res.headers['x-total-count'] || 0),
   }));
 }
 
+// 新增教师
 export function addTeacher(data) {
-  return mockService.post('/teachers', data);
+  return service.post('/teachers', data);
 }
+
+// 编辑教师
 export function updateTeacher(id, data) {
-  return mockService.put('/teachers/' + id, data);
+  return service.put('/teachers/' + id, data);
 }
+
+// 删除教师
 export function deleteTeacher(id) {
-  return mockService.delete('/teachers/' + id);
+  return service.delete('/teachers/' + id);
 }

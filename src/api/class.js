@@ -1,23 +1,25 @@
-import axios from 'axios';
+// 班级接口
+import { service } from './auth';
 
-const mockService = axios.create({
-  baseURL: 'http://localhost:3001/api',
-  timeout: 10000,
-});
-
+// 获取班级列表（分页 + 搜索）
 export function getClassList(params) {
-  return mockService.get('/classes', { params }).then((res) => ({
+  return service.get('/classes', { params }).then((res) => ({
     list: res.data,
     total: Number(res.headers['x-total-count'] || 0),
   }));
 }
 
+// 新增班级
 export function addClass(data) {
-  return mockService.post('/classes', data);
+  return service.post('/classes', data);
 }
+
+// 编辑班级
 export function updateClass(id, data) {
-  return mockService.put('/classes/' + id, data);
+  return service.put('/classes/' + id, data);
 }
+
+// 删除班级
 export function deleteClass(id) {
-  return mockService.delete('/classes/' + id);
+  return service.delete('/classes/' + id);
 }

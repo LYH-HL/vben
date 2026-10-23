@@ -1,10 +1,7 @@
-import axios from 'axios';
+// 工作台统计接口
+import { service } from './auth';
 
-const mockService = axios.create({
-  baseURL: 'http://localhost:3001/api',
-  timeout: 10000,
-});
-
+// 获取统计数据
 export function getStats() {
-  return mockService.get('/stats').then((res) => res.data);
+  return service.get('/stats').then((res) => res.data);
 }

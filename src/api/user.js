@@ -1,37 +1,25 @@
-import axios from 'axios';
-import {service} from './auth';
-export function getUserInfo(){
-    return service.get('/user/info').then((res) => {
-        if (res.data.code !== 0){
-            return Promise.reject(new Error(res.data.message || '获取用户信息失败'));
-        }
-        return res.data.data;
-    })
+// 学生接口
+import { service } from './auth';
+
+// 获取学生列表（分页 + 搜索）
+export function getUserList(params) {
+  return service.get('/users', { params }).then((res) => ({
+    list: res.data,
+    total: Number(res.headers['x-total-count'] || 0),
+  }));
 }
-const mockService = axios.create({
-    baseURL: 'http://localhost:3001/api', // 本地后端
-    timeout: 10000,
-});
-export function getUserList(params){
-    return mockService.get('/users',{params}).then((res) => {
-        return{
-            list: res.data,
-            total: Number(res.headers['x-total-count'] || 0)
-        };
-    });
-};
 
 // 新增学生
 export function addUser(data) {
-  return mockService.post('/users', data);
+  return service.post('/users', data);
 }
 
 // 编辑学生
 export function updateUser(id, data) {
-  return mockService.put('/users/' + id, data);
+  return service.put('/users/' + id, data);
 }
 
 // 删除学生
 export function deleteUser(id) {
-  return mockService.delete('/users/' + id);
+  return service.delete('/users/' + id);
 }
