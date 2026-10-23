@@ -13,6 +13,7 @@ app.get('/api/hello', (req, res) => {
   res.json({ message: '后端跑起来了！', time: new Date().toLocaleString() });
 });
 
+app.use('/api', require('./routes/captcha'));
 app.use('/api', require('./routes/auth'));
 
 app.use('/api/users', auth, require('./routes/users'));

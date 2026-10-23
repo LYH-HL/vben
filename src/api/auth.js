@@ -35,7 +35,7 @@ service.interceptors.response.use(
   }
 );
 
-// 登录接口（指向自己的后端）
+// 登录接口
 export function loginApi(data) {
   return service.post('/login', data).then((res) => {
     if (res.data.code !== 0) {
@@ -43,4 +43,9 @@ export function loginApi(data) {
     }
     return res.data.data;
   });
+}
+
+// 获取验证码（登录前调用，返回验证码ID + SVG图片）
+export function getCaptcha() {
+  return service.get('/captcha').then((res) => res.data.data);
 }
