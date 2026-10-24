@@ -18,12 +18,17 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      # 版本从 package.json 的 packageManager 字段读取（pnpm@12.11.2）
-      - uses: pnpm/action-setup@v4
+      # 版本写死在这里：不在 package.json 声明 packageManager，
+      # 否则 pnpm 12 会把它当成「要管理的包管理器依赖」重写 lockfile，
+      # 把项目依赖的 importer 段覆盖掉（已踩过一次）。
+      # action-setup v6 才正式支持 pnpm v12（v4 会按老版本处理）。
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 12.11.2
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
