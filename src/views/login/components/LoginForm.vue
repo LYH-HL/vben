@@ -1,7 +1,6 @@
 <script setup>
 import { reactive, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
 import { User, Lock, Key, ChromeFilled, ChatDotRound, Platform } from '@element-plus/icons-vue';
 import { useAuthStore } from '@/stores/auth';
 import { getCaptcha } from '@/api/auth';
@@ -26,7 +25,7 @@ async function loadCaptcha() {
     const data = await getCaptcha();
     captchaId.value = data.captchaId;
     captchaSvg.value = data.svg;
-  } catch (e) {
+  } catch {
     ElMessage.error('验证码加载失败');
   }
 }
@@ -91,18 +90,36 @@ if (remembered) {
 <template>
   <el-form ref="formRef" :model="form" :rules="rules" size="large" @submit.prevent>
     <el-form-item prop="username">
-      <el-input v-model="form.username" placeholder="请输入账号" :prefix-icon="User" clearable @keyup.enter="handleLogin" />
+      <el-input
+        v-model="form.username"
+        placeholder="请输入账号"
+        :prefix-icon="User"
+        clearable
+        @keyup.enter="handleLogin"
+      />
     </el-form-item>
     <el-form-item prop="password">
-      <el-input v-model="form.password" type="password" placeholder="请输入密码"
-                :prefix-icon="Lock" show-password @keyup.enter="handleLogin" />
+      <el-input
+        v-model="form.password"
+        type="password"
+        placeholder="请输入密码"
+        :prefix-icon="Lock"
+        show-password
+        @keyup.enter="handleLogin"
+      />
     </el-form-item>
     <el-form-item prop="captchaCode">
       <div class="captcha-row">
-        <el-input v-model="form.captchaCode" placeholder="请输入验证码" :prefix-icon="Key"
-                  maxlength="4" @keyup.enter="handleLogin" />
-        <!-- 验证码图片：点击刷新 -->
-        <div class="captcha-img" v-html="captchaSvg" @click="loadCaptcha" title="点击刷新验证码"></div>
+        <el-input
+          v-model="form.captchaCode"
+          placeholder="请输入验证码"
+          :prefix-icon="Key"
+          maxlength="4"
+          @keyup.enter="handleLogin"
+        />
+        <!-- 验证码图片：点击刷新。SVG 由本项目后端生成，不是用户输入 -->
+        <!-- eslint-disable-next-line vue/no-v-html -->
+        <div class="captcha-img" title="点击刷新验证码" @click="loadCaptcha" v-html="captchaSvg"></div>
       </div>
     </el-form-item>
     <el-form-item>
@@ -112,9 +129,7 @@ if (remembered) {
       </div>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" class="login-btn" :loading="loading" @click="handleLogin">
-        登 录
-      </el-button>
+      <el-button type="primary" class="login-btn" :loading="loading" @click="handleLogin"> 登 录 </el-button>
     </el-form-item>
   </el-form>
   <div class="login-divider"><span>其他登录方式</span></div>

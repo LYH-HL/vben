@@ -8,3 +8,18 @@ export function getScoreList(params) {
     total: Number(res.headers['x-total-count'] || 0),
   }));
 }
+
+// 录入成绩
+export function addScore(data) {
+  return service.post('/scores', data);
+}
+
+// 修改成绩
+export function updateScore(id, data) {
+  return service.put('/scores/' + id, data);
+}
+
+// 删除成绩
+export function deleteScore(id) {
+  return service.delete('/scores/' + id);
+}

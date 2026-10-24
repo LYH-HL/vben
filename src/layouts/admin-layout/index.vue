@@ -61,6 +61,10 @@ function handleCommand(command) {
                 {{ authStore.username ? authStore.username.charAt(0).toUpperCase() : 'U' }}
               </el-avatar>
               <span class="username">{{ authStore.username }}</span>
+              <!-- 角色标签：让「为什么有的按钮看不见」一眼有答案 -->
+              <el-tag v-if="authStore.role" size="small" :type="authStore.isAdmin ? 'danger' : 'info'">
+                {{ authStore.role }}
+              </el-tag>
               <el-icon><ArrowDown /></el-icon>
             </span>
             <template #dropdown>

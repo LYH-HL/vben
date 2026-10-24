@@ -2,7 +2,6 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import AdminLayout from '@/layouts/admin-layout/index.vue';
 
-
 // 路由表：一个数组，数组里每一项 = 一条路由规则
 
 const routes = [
@@ -49,7 +48,7 @@ const routes = [
         meta: { title: '班级管理' },
       },
       {
-        'path': 'course',
+        path: 'course',
         component: () => import('@/views/course/index.vue'),
         meta: { title: '课程管理' },
       },
@@ -69,6 +68,13 @@ const routes = [
         component: () => import('@/views/settings/index.vue'),
         meta: { title: '系统设置', icon: 'Setting' },
       },
+      {
+        // 兜底路由：任何未匹配的地址都落到 404 页，而不是渲染成白屏
+        path: ':pathMatch(.*)*',
+        name: 'not-found',
+        component: () => import('@/views/not-found/index.vue'),
+        meta: { title: '页面不存在' },
+      },
     ],
   },
 ];
@@ -78,7 +84,6 @@ const router = createRouter({
   history: createWebHashHistory(), // 使用 # 模式
   routes, // 传入上面定义的路由表
 });
-
 
 // 路由守卫：每次跳转页面之前，先执行这里的代码
 // 作用：控制"能不能进这个页面"（登录拦截）

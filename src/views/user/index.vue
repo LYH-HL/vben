@@ -13,7 +13,7 @@
         />
         <el-button type="primary" @click="handleSearch">搜索</el-button>
         <el-button @click="handleReset">重置</el-button>
-        <el-button type="success" @click="openDialog()">+ 新增学生</el-button>
+        <el-button v-if="authStore.isAdmin" type="success" @click="openDialog()">+ 新增学生</el-button>
       </div>
 
       <!-- 表格 -->
@@ -32,7 +32,7 @@
         </el-table-column>
         <el-table-column prop="createdAt" label="创建时间" />
         <!-- 操作列 -->
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column v-if="authStore.isAdmin" label="操作" width="150" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="openDialog(row)">编辑</el-button>
             <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
@@ -85,9 +85,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
 import { getUserList, addUser, updateUser, deleteUser } from '@/api/user';
+import { useAuthStore } from '@/stores/auth';
 
+const authStore = useAuthStore();
 const tableData = ref([]);
 const loading = ref(false);
 const searchKeyword = ref('');
@@ -179,7 +180,7 @@ async function handleDelete(row) {
     await deleteUser(row.id);
     ElMessage.success('删除成功');
     fetchData();
-  } catch (error) {
+  } catch {
     // 用户点取消就不提示
   }
 }

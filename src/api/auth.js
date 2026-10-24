@@ -1,11 +1,11 @@
 import axios from 'axios';
-import { ElMessage } from 'element-plus';
 
 let isHandling401 = false;
 
 // axios 实例（指向自己的后端）
+// 地址来自 VITE_API_BASE，未配置时回落到本地开发默认值
 export const service = axios.create({
-  baseURL: 'http://localhost:3001/api',
+  baseURL: import.meta.env.VITE_API_BASE || 'http://localhost:3001/api',
   timeout: 10000,
 });
 
@@ -28,6 +28,7 @@ service.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('username');
       localStorage.removeItem('realname');
+      localStorage.removeItem('role');
       ElMessage.error('登录已过期，请重新登录');
       setTimeout(() => window.location.reload(), 300);
     }

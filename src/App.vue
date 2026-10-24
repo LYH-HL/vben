@@ -1,6 +1,13 @@
+<script setup>
+// 语言包从这里统一下发给所有 Element Plus 组件
+import zhCn from 'element-plus/es/locale/lang/zh-cn';
+</script>
+
 <template>
-  <!-- 路由出口：访问 / 显示登录页 -->
-  <router-view />
+  <el-config-provider :locale="zhCn">
+    <!-- 路由出口：访问 / 显示登录页 -->
+    <router-view />
+  </el-config-provider>
 </template>
 
 <style>

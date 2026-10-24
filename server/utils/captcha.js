@@ -35,11 +35,14 @@ function verify(captchaId, code) {
 }
 
 // 定期清理过期验证码，防止内存堆积（每 10 分钟清一次）
-setInterval(() => {
-  const now = Date.now();
-  for (const [id, item] of store) {
-    if (now > item.expiresAt) store.delete(id);
-  }
-}, 10 * 60 * 1000);
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [id, item] of store) {
+      if (now > item.expiresAt) store.delete(id);
+    }
+  },
+  10 * 60 * 1000
+);
 
 module.exports = { create, verify };
